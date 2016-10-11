@@ -54,6 +54,6 @@ main = do
         modifyMaxSize (const 5) $ it "doesn't change FD closure" $ Q.property $
           \(LimitedGraph x) ->
             let
-              norm = normalize x
+              norm = either id id $ normalize x
               ps = S.fromList $ map (flip project (fullext x) . S.fromList) norm
             in  fullext (unions ps) == fullext x

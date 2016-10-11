@@ -120,11 +120,11 @@ nf3 g = S.filter (\(f,r) -> not $ f `S.member` sks || r `S.isSubsetOf` kas) $ no
     sks = S.map fst $ superkeys g
     kas = unions $ S.map fst $ potkeys g
 
-normalize :: Graph -> [[Vertex]]
+normalize :: Graph -> Either [[Vertex]] [[Vertex]]
 normalize g = checkErr
   where
-    invFD = conservative minimize $ nfbc g
-    restFD = S.difference (conservative minimize $ fullext g) invFD
+    invFD = minimize $ nfbc g
+    restFD = S.difference (minimize $ fullext g) invFD
     invAttrR = unions $ S.map snd invFD
     restAttrL = unions $ S.map fst restFD
     invRels :: [[Vertex]]
@@ -137,5 +137,5 @@ normalize g = checkErr
            | otherwise =  baseRel : invRels
     prjFDs = S.unions $ map (\x -> project (S.fromList x) $ fullext g) result
     checkErr = if fullext prjFDs == fullext g
-               then result
-               else error "Failed"
+               then Right result
+               else Left result

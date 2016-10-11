@@ -11,7 +11,6 @@ import Data.List
 import qualified GHCJS.Types    as T
 import qualified Data.JSString as JSS
 
-
 import Reflex.Spider.Internal
 import GHCJS.DOM
 import GHCJS.DOM.Document
@@ -73,32 +72,36 @@ outputWidget (Right inp) = do
     minimize . nf3 . fullext
   simpleBlock "ФЗ, не удовлетворяющие НФБК (минимальное множество)" inp $
     minimize . nfbc . fullext
+  let normalized = normalize inp
+  case normalized of
+    Left norm -> do
+      el "h1" $ text $ show "Некорректная нормализация!"
+      normWidget inp norm
+    Right norm -> normWidget inp norm
+
+normWidget :: MonadWidget t m =>
+              Graph -> [[Vertex]] -> m ()
+normWidget inp norm = do
+  let prj = map (\x -> (x, minimize . flip project (fullext inp) . S.fromList $ x)) norm
   customBlock "Нормализованные отношения" $
     el "pre" $ do
-      let runProject g =
-            let norm = normalize g
-                projects = map (minimize . flip project (fullext g) . S.fromList) norm
-            in zip norm projects
+      let
           printProject =
             concatMap p
             where
               p (n, g) = "(" ++ intercalate ", " (map vtxName n) ++ "):\n" ++
                 graphToString g ++ "\n\n"
-      text $ printProject $ runProject inp
+      text $ printProject prj
   customBlock "Диаграмма атрибутов" $ do
     _ <- elDynHtml' "div" $ constDyn $ (JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext) inp
     return ()
   customBlock "Диаграммы атрибутов нормализованных отношений" $
     el "div" $ do
-      let runProject g =
-            let norm = normalize g
-                projects = map (minimize . flip project (fullext g) . S.fromList) norm
-            in zip norm projects
-          printProject (n, g) = do
+      let printProject (n, g) = do
             el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
             _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext $ g
             return ()
           sp tg = el "div" $
             mapM_ (el "div" . printProject) tg
-      sp $ runProject inp
+      sp prj
       return ()

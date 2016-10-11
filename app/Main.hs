@@ -30,7 +30,7 @@ commands =
 
 normcmd :: Parser (Graph -> [[Vertex]])
 normcmd =
-    flag' () (long "normalize") *> pure normalize
+    flag' () (long "normalize") *> pure (either id id . normalize)
 
 output :: Parser (Graph -> IO String)
 output = if' showGraph (return . graphToString) <$> switch (long "dot")
