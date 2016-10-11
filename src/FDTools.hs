@@ -4,8 +4,8 @@ module FDTools
   ( module X
   ) where
 
-import Types as X
-import Util as X
-import Graphviz as X
-import Parse as X
-import Pretty as X
+import FDTools.Types as X
+import FDTools.Util as X
+import FDTools.Graphviz as X
+import FDTools.Parse as X
+import FDTools.Pretty as X

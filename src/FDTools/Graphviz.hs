@@ -6,8 +6,8 @@ module FDTools.Graphviz
   , showGraph
   ) where
 
-import Types
-import Util
+import FDTools.Types
+import FDTools.Util
 import Data.Text.Lazy (unpack)
 import Data.List
 import Data.GraphViz

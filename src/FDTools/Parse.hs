@@ -3,7 +3,7 @@ module FDTools.Parse
   ( parseGraph
   ) where
 
-import Types
+import FDTools.Types
 import Text.Parsec
 import Data.List
 import qualified Data.Set as S
