@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-module Pretty where
+module FDTools.Pretty where
 
 import Types
 import Data.List

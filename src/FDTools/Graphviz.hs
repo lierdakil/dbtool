@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Graphviz
+module FDTools.Graphviz
   ( printGraph
   , showGraph
   ) where

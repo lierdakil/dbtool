@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-module Types where
+module FDTools.Types where
 
 import Data.Set
 

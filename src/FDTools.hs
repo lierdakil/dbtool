@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Lib
+module FDTools
   ( module X
   ) where
 

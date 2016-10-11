@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module Util
+module FDTools.Util
   ( minimize
   , collect
   , expand

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-module Parse
+module FDTools.Parse
   ( parseGraph
   ) where
 
