@@ -60,7 +60,7 @@ Test-Suite test-integrative
   Build-Depends:   base >=4.7 && <5
                  , db-tool
                  , hspec
-                 , quickcheck
+                 , QuickCheck
                  , parsec
                  , graphviz
                  , text
