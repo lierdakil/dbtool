@@ -1,19 +1,17 @@
 flags: {}
 packages:
 - '.'
-setup-info:
-  ghcjs:
-    source:
-      ghcjs-0.2.0.20160414_ghc-7.10.3:
-        url: https://s3.amazonaws.com/ghcjs/ghcjs-0.2.0.20160414_ghc-7.10.3.tar.gz
-        sha1: 6d6f307503be9e94e0c96ef1308c7cf224d06be3
 extra-deps:
-- ghcjs-dom-0.2.4.0
 - ref-tf-0.4.0.1
 - reflex-0.4.0
 - reflex-dom-0.3
-- webkitgtk3-0.14.2.0
-- webkitgtk3-javascriptcore-0.13.2.0
+resolver: lts-6.20
+compiler: ghcjs-0.2.0.9006020_ghc-7.10.3
 compiler-check: match-exact
-compiler: ghcjs-0.2.0.20160414_ghc-7.10.3
-resolver: lts-5.12
+
+setup-info:
+  ghcjs:
+    source:
+      ghcjs-0.2.0.9006020_ghc-7.10.3:
+         url: http://ghcjs.tolysz.org/lts-6.20-9006020.tar.gz
+         sha1: a6cea90cd8121eee3afb201183c6e9bd6bacd94a
