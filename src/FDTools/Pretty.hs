@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 module FDTools.Pretty where
 
-import Types
+import FDTools.Types
 import Data.List
 import qualified Data.Set as S
 

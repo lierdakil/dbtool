@@ -3,7 +3,7 @@
 
 module Main where
 
-import Lib
+import FDTools
 import Options.Applicative
 import Control.Monad
 import Data.List.Split

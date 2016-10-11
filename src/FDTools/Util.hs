@@ -14,7 +14,7 @@ module FDTools.Util
   , normalize
   ) where
 
-import Types
+import FDTools.Types
 import qualified Data.Set as S
 import qualified Control.Arrow as A
 

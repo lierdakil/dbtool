@@ -5,7 +5,7 @@ import Reflex
 import Reflex.Dom
 import qualified Data.Set as S
 
-import Lib
+import FDTools
 import Data.List
 
 import qualified GHCJS.Types    as T
