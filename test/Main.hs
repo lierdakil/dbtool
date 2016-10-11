@@ -1,5 +1,6 @@
 import Test.Hspec
 import FDTools
+import Test.QuickCheck (property)
 
 main :: IO ()
 main = do
