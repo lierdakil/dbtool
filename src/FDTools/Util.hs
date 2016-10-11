@@ -1,7 +1,9 @@
+{-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module FDTools.Util
   ( minimize
+  , conservative
   , collect
   , expand
   , fullext
@@ -12,11 +14,18 @@ module FDTools.Util
   , nfbc
   , nf3
   , normalize
+  , allvs
+  , unions
   ) where
 
 import FDTools.Types
 import qualified Data.Set as S
 import qualified Control.Arrow as A
+
+conservative :: (Graph -> Graph) -> Graph -> Graph
+conservative f g = res `S.union` add
+  where res = f g
+        add = S.singleton $ let rl = allvs g S.\\ allvs res in (rl, S.empty)
 
 minimize :: Graph -> Graph
 minimize = collect . minimize' S.empty . nontrivial . expand
@@ -28,12 +37,14 @@ minimize = collect . minimize' S.empty . nontrivial . expand
         let
           -- find element with longest left side
           fdToTest = snd $ S.findMax $ S.map (\x -> (S.size $ fst x, x)) es
-          es' = S.delete fdToTest es
-          allFDs = es' `S.union` acc
+          !es' = S.delete fdToTest es
+          !allFDs = es' `S.union` acc
         in
         if isDerivable fdToTest allFDs
         then minimize' acc es'
-        else minimize' (S.insert fdToTest acc) es'
+        else
+          let !acc' = S.insert fdToTest acc
+          in minimize' acc' es'
     isDerivable :: Edge -> Graph -> Bool
     isDerivable fd fds =
       let (l, r) = fd
@@ -67,8 +78,10 @@ closure x s =
 fullext :: Graph -> Graph
 fullext g = S.map (closureToFDs g) allsubs
   where
-    allvs = unions $ S.map (uncurry S.union) g
-    allsubs = powerset allvs S.\\ S.empty
+    allsubs = powerset (allvs g) S.\\ S.singleton S.empty
+
+allvs :: Graph -> VertexList
+allvs = unions . S.map (uncurry S.union)
 
 powerset :: Ord a => S.Set a -> S.Set (S.Set a)
 powerset s
@@ -81,9 +94,8 @@ closureToFDs :: Graph -> VertexList -> Edge
 closureToFDs g x = (x, closure x g)
 
 superkeys :: Graph -> Graph
-superkeys g = S.filter (\x -> snd x == allvs) fe
+superkeys g = S.filter (\x -> snd x == allvs g) fe
   where
-    allvs = unions $ S.map (uncurry S.union) g
     fe = fullext g
 
 potkeys :: Graph -> Graph
@@ -111,8 +123,8 @@ nf3 g = S.filter (\(f,r) -> not $ f `S.member` sks || r `S.isSubsetOf` kas) $ no
 normalize :: Graph -> [[Vertex]]
 normalize g = checkErr
   where
-    invFD = minimize $ nfbc g
-    restFD = S.difference (minimize $ fullext g) invFD
+    invFD = conservative minimize $ nfbc g
+    restFD = S.difference (conservative minimize $ fullext g) invFD
     invAttrR = unions $ S.map snd invFD
     restAttrL = unions $ S.map fst restFD
     invRels :: [[Vertex]]
@@ -120,7 +132,7 @@ normalize g = checkErr
     nf1 = unions $ S.map (uncurry S.union) g
     baseRel :: [Vertex]
     baseRel = S.toList $ S.filter (\x -> x `S.notMember` invAttrR || x `S.member` restAttrL) nf1
-    basePrj = nontrivial $ project (S.fromList baseRel) $ fullext g
+    basePrj = conservative nontrivial $ project (S.fromList baseRel) $ fullext g
     result | S.null basePrj = invRels
            | otherwise =  baseRel : invRels
     prjFDs = S.unions $ map (\x -> project (S.fromList x) $ fullext g) result
