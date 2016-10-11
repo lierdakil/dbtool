@@ -14,5 +14,5 @@ edgeToString (l, r) = vertexListToString l ++ " -> " ++ vertexListToString r
 vertexListToString :: VertexList -> String
 vertexListToString vl
   | S.size vl == 0 = "()"
-  | S.size vl == 1 = S.elemAt 0 vl
-  | otherwise = "(" ++ intercalate ", " (S.toList vl) ++ ")"
+  | S.size vl == 1 = vtxName $ S.elemAt 0 vl
+  | otherwise = "(" ++ intercalate ", " (map vtxName $ S.toList vl) ++ ")"

@@ -82,7 +82,7 @@ outputWidget (Right inp) = do
           printProject =
             concatMap p
             where
-              p (n, g) = "(" ++ intercalate ", " n ++ "):\n" ++
+              p (n, g) = "(" ++ intercalate ", " (map vtxName n) ++ "):\n" ++
                 graphToString g ++ "\n\n"
       text $ printProject $ runProject inp
   customBlock "Диаграмма атрибутов" $ do
@@ -95,7 +95,7 @@ outputWidget (Right inp) = do
                 projects = map (minimize . flip project (fullext g) . S.fromList) norm
             in zip norm projects
           printProject (n, g) = do
-            el "p" $ text $ "(" ++ intercalate ", " n ++ "):"
+            el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
             _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext $ g
             return ()
           sp tg = el "div" $

@@ -3,7 +3,7 @@ module FDTools.Types where
 
 import Data.Set
 
-type Vertex = String
+newtype Vertex = Vertex {vtxName :: String} deriving (Eq, Ord, Show)
 type VertexList = Set Vertex
 type Edge = (VertexList, VertexList)
 type Graph = Set Edge

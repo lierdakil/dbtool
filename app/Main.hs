@@ -26,7 +26,7 @@ commands =
     <> command "nf3" (info (pure nf3) idm)
     -- <> command "normalize" (info (pure normalize) idm)
     where
-      attr = S.fromList . splitOn "," <$> argument str (metavar "ATTR,ATTR...")
+      attr = S.fromList . map Vertex . splitOn "," <$> argument str (metavar "ATTR,ATTR...")
 
 normcmd :: Parser (Graph -> [[Vertex]])
 normcmd =
@@ -41,7 +41,7 @@ input :: Parser (IO Graph)
 input = fmap (either (error . show) id . parseGraph) . readFile <$> argument str (metavar "FILE")
 
 showRels :: [[Vertex]] -> String
-showRels = intercalate "\n" . map (intercalate ", ")
+showRels = intercalate "\n" . map (intercalate ", " . map vtxName)
 
 main :: IO ()
 main = join (execParser opts) >>= putStrLn

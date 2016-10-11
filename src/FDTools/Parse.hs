@@ -17,7 +17,7 @@ graph :: Parsec String st Graph
 graph = S.fromList <$> many1 (optional (try comment) *> edge <* (try comment <|> eol)) <* eof
 edge :: Parsec String st Edge
 edge = do
-  p <- option "" $ try ((++".") <$> vertex "" <* char ':' <* spaces)
+  p <- option "" $ try ((++".") <$> ident <* char ':' <* spaces)
   try $ do
     l <- vertexList p
     spaces >> (string "->" <|> string "→" <|> string "\\to") >> spaces
@@ -31,7 +31,9 @@ vertexList p = S.fromList <$>
    <* optionMaybe (try (char ')'))
    )
 vertex :: String -> Parsec String st Vertex
-vertex p = (p++) . trim <$> many1 (letter <|> digit <|> oneOf " _.№")
+vertex p = Vertex . (p++) <$> ident
+ident :: Parsec String st String
+ident = trim <$> many1 (letter <|> digit <|> oneOf " _.№")
 
 trim :: String -> String
 trim = f . f

@@ -29,7 +29,7 @@ showGraph edges = do
 printEdge :: Edge -> DotM String ()
 printEdge (l, r) | S.size l == 1
                  , ln <- S.elemAt 0 l = do
-  mapM_ (\n -> ln --> n) r
+  mapM_ (\n -> vtxName ln --> vtxName n) r
   return ()
 printEdge (l, r) = do
   nodeAttrs [rank SameRank]
@@ -37,8 +37,8 @@ printEdge (l, r) = do
   let name = intercalate "," names
   node name [shape PointShape]
   mapM_ (\n -> edge n name [ArrowHead noArrow]) names
-  mapM_ (\n -> name --> n) r
+  mapM_ (\n -> name --> vtxName n) r
   return ()
 
 printVertex :: Vertex -> DotM String String
-printVertex n = node n [] >> return n
+printVertex (Vertex n) = node n [] >> return n
