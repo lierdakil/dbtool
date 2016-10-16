@@ -8,7 +8,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 
 erToFDs :: ER -> Graph
-erToFDs ER{..} = S.fromList $
+erToFDs ER{..} = nontrivial . S.fromList $
   entityFDs ++ relFDs
   where
     entityFDs = map (entityFD . snd) $ M.toList erEntities
@@ -27,21 +27,19 @@ erToFDs ER{..} = S.fromList $
       | otherwise = x
     relFDs = concatMap relFD erRels
     relFD Rel{..}
-      = allKeys --> attrs2vtx' relName relAttrs
-      : concatMap (uncurry pairFD) (pairs relConn)
+      | null $ ctKeys Many
+      = oneToOne
+      | otherwise
+      = ctKeys Many --> rsOrNull : oneToOne
       where
-        allKeys = S.unions $ mapMaybe (\(_,en) -> entKeys <$> M.lookup en erEntities) relConn
-        pairs (x:xs) = map ((,) x) xs ++ pairs xs
-        pairs [] = []
-        pairFD (One, enl) (One, enr) =
-          [entNameKeys enl --> entNameKeys enr
-          ,entNameKeys enr --> entNameKeys enl]
-        pairFD (One, enl) (Many, enr) =
-          [entNameKeys enr --> entNameKeys enl]
-        pairFD (Many, enl) (One, enr) =
-          [entNameKeys enl --> entNameKeys enr]
-        pairFD (Many, enl) (Many, enr) =
-          [(entNameKeys enl `S.union` entNameKeys enr) --> S.singleton (Vertex "∅")]
+        oneToOne = concatMap (\x -> map ((entKeys x -->) . entKeys) (ctf One)) (ctf One)
+        rs = S.unions [ctKeys One, attrs2vtx' relName relAttrs]
+        rsOrNull | S.null rs = S.singleton (Vertex "∅")
+                 | otherwise = rs
+        allKeys = S.unions $ map (entNameKeys . snd) relConn
+        ctf t = mapMaybe (flip M.lookup erEntities . snd) $ filter ((t ==) . fst) relConn
+        ctKeys t = getKeys $ ctf t
+        getKeys = S.unions . map entKeys
     keyAttrs = filter attrIdent
     attr2vtx' en attr = Vertex $ en ++ "." ++ attrName attr
     attrs2vtx' en = S.fromList . map (attr2vtx' en)

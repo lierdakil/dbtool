@@ -84,7 +84,7 @@ outputWidget (Right inp, trueMinimize) = do
   simpleBlock "ФЗ, не удовлетворяющие НФБК (минимальное множество)" nfbcl
   case normalized of
     Left norm -> do
-      el "h1" $ text $ show "Некорректная нормализация!"
+      el "h1" $ text "Некорректная нормализация!"
       normWidget minf norm trueMinimize
     Right norm -> normWidget minf norm trueMinimize
 

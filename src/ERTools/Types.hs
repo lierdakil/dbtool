@@ -12,7 +12,7 @@ data Entity = Entity
   , entParent :: Maybe String
   , entAttrs :: [Attr]
   } deriving (Show, Read)
-data RelType = One | Many deriving (Show, Read)
+data RelType = One | Many deriving (Show, Read, Eq)
 data Rel = Rel
   { relName :: String
   , relConn :: [(RelType, String)]
