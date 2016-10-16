@@ -6,10 +6,10 @@ module ERTools.Graphviz
   ) where
 
 import ERTools.Types
-import Data.Text.Lazy (unpack)
+import Data.Text.Lazy (pack, unpack)
 import Data.GraphViz
 import Data.GraphViz.Types.Monadic
-import Data.GraphViz.Attributes
+import qualified Data.GraphViz.Attributes.HTML as H
 import Data.GraphViz.Attributes.Complete
 
 whenJust :: (Monad m) => Maybe a -> (a -> m ()) -> m ()
@@ -19,7 +19,7 @@ showER :: ER -> String
 showER ER{..} =
   let
     g = graph (Str "G") $ do
-      graphAttrs [Layout Dot, Overlap VoronoiOverlap, Splines SplineEdges]
+      graphAttrs [Layout Neato, Overlap VoronoiOverlap, Splines SplineEdges]
       mapM_ entNode erEntities
       mapM_ relNode erRels
   in unpack $ printDotGraph g
@@ -37,9 +37,9 @@ entNode Entity{..} = do
 attrNode :: String -> Attr -> DotM String ()
 attrNode p Attr{..} = do
   let nid = p ++ ":" ++ attrName
-      nshape | attrIdent = Octagon
-             | otherwise = Ellipse
-  node nid [shape nshape, toLabel attrName]
+      lab | attrIdent = toLabel [H.Format H.Underline [H.Str $ pack attrName]]
+          | otherwise = toLabel attrName
+  node nid [lab]
   p --> nid
 
 relNode :: Rel -> DotM String ()

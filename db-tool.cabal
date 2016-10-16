@@ -48,12 +48,14 @@ executable db-tool-exe
 executable db-tool-dom
   hs-source-dirs:      dom
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  other-modules:       Util
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   if impl(ghcjs)
     build-depends:       base
                        , db-tool
                        , reflex
                        , reflex-dom
+                       , reflex-dom-helpers
                        , lens
                        , containers
                        , ghcjs-base
@@ -65,12 +67,14 @@ executable db-tool-dom
 executable er-tool-dom
   hs-source-dirs:      dom
   main-is:             ERTool.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  other-modules:       Util
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall
   if impl(ghcjs)
     build-depends:       base
                        , db-tool
                        , reflex
                        , reflex-dom
+                       , reflex-dom-helpers
                        , lens
                        , containers
                        , ghcjs-base

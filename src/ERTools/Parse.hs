@@ -50,7 +50,7 @@ rel = do
     spaces
     _ <- char ':'
     spaces
-    ct <- (char '1' *> pure One) <|> (char 'M' *> pure Many)
+    ct <- (char '1' *> pure One) <|> (oneOf "M*" *> pure Many)
     _ <- many1 space
     ent <- ident
     return (ct, ent)

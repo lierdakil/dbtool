@@ -8,13 +8,12 @@ import qualified Data.Set as S
 import FDTools
 import Data.List
 
-import qualified GHCJS.Types    as T
-import qualified Data.JSString as JSS
-
 import Reflex.Spider.Internal
+
 import GHCJS.DOM
 import GHCJS.DOM.Document
 import GHCJS.DOM.Types (castToHTMLDocument, castToHTMLElement)
+import Util
 
 graphInput :: MonadWidget t m => m (Dynamic t String)
 graphInput = do
@@ -22,9 +21,6 @@ graphInput = do
   el "br" $ return ()
   bt <- button "Анализ"
   holdDyn "" $ tagDyn (value n) bt
-
-foreign import javascript safe "Viz($1, { format: \"svg\", engine: \"dot\" })"
-  vizDot :: T.JSString -> T.JSString
 
 widget :: Widget
             Spider
@@ -93,13 +89,15 @@ normWidget inp norm = do
                 graphToString g ++ "\n\n"
       text $ printProject prj
   customBlock "Диаграмма атрибутов" $ do
-    _ <- elDynHtml' "div" $ constDyn $ (JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext) inp
+    -- _ <- elDynHtml' "div" $ constDyn $ (JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext) inp
+    graphImg . printGraph . minimize . fullext $ inp
     return ()
   customBlock "Диаграммы атрибутов нормализованных отношений" $
     el "div" $ do
       let printProject (n, g) = do
             el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
-            _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext $ g
+            graphImg . printGraph . minimize . fullext $ g
+            -- _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack .
             return ()
           sp tg = el "div" $
             mapM_ (el "div" . printProject) tg
