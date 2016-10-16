@@ -5,6 +5,8 @@ import Reflex
 import Reflex.Dom
 
 import ERTools
+import FDTools
+import ERToFD
 
 import Reflex.Spider.Internal
 import GHCJS.DOM
@@ -42,4 +44,7 @@ main = widget $ el "div" $ do
 outputWidget :: (Show a, MonadWidget t m) =>
                 Either a ER -> m ()
 outputWidget (Left err) = el "div" $ text $ show err
-outputWidget (Right inp) = graphImg . showER $ inp
+outputWidget (Right inp) = do
+  graphImg . showER $ inp
+  el "pre" $ do
+    text $ graphToString . erToFDs $ inp

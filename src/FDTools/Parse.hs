@@ -5,7 +5,6 @@ module FDTools.Parse
 
 import FDTools.Types
 import Text.Parsec
-import Data.List
 import qualified Data.Set as S
 import Data.Char (isSpace)
 
@@ -33,7 +32,7 @@ vertexList p = S.fromList <$>
 vertex :: String -> Parsec String st Vertex
 vertex p = Vertex . (p++) <$> ident
 ident :: Parsec String st String
-ident = trim <$> many1 (letter <|> digit <|> oneOf " _.№")
+ident = trim <$> (many1 (letter <|> digit <|> oneOf " _.№") <|> string "∅")
 
 trim :: String -> String
 trim = f . f

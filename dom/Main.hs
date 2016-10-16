@@ -43,11 +43,11 @@ main = widget $ el "div" $ do
   return ()
 
 simpleBlock :: MonadWidget t m =>
-               String -> r -> (r -> Graph) -> m ()
-simpleBlock header inp func =
+               String -> Graph -> m ()
+simpleBlock header g =
   customBlock header $
     el "pre" $
-      text $ graphToString . func $ inp
+      text $ graphToString g
 
 customBlock :: MonadWidget t m =>
                String -> m b -> m b
@@ -59,21 +59,28 @@ outputWidget :: (Show a, MonadWidget t m) =>
                 Either a Graph -> m ()
 outputWidget (Left err) = el "div" $ text $ show err
 outputWidget (Right inp) = do
-  simpleBlock "Полный список ФЗ" inp fullext
-  simpleBlock "Полный список ФЗ (кроме тривиальных)" inp (nontrivial . fullext)
-  simpleBlock "Суперключи" inp superkeys
-  simpleBlock "Потенциальные ключи" inp potkeys
-  simpleBlock "Минимальный список ФЗ" inp (minimize . fullext)
-  simpleBlock "ФЗ, не удовлетворяющие 3НФ (минимальное множество)" inp $
-    minimize . nf3 . fullext
-  simpleBlock "ФЗ, не удовлетворяющие НФБК (минимальное множество)" inp $
-    minimize . nfbc . fullext
-  let normalized = normalize inp
+  let
+    full = fullext inp
+    -- nt = nontrivial full
+    -- sk = superkeys full
+    pk = potkeys full
+    -- minf = conservative minimize inp
+    minf = conservative (collect . nontrivial) inp
+    nf3l = nf3 minf
+    nfbcl = nfbc minf
+    normalized = normalize minf
+  -- simpleBlock "Полный список ФЗ" full
+  -- simpleBlock "Полный список ФЗ (кроме тривиальных)" nt
+  -- simpleBlock "Суперключи" sk
+  simpleBlock "Потенциальные ключи" pk
+  simpleBlock "Минимальный список ФЗ" minf
+  simpleBlock "ФЗ, не удовлетворяющие 3НФ (минимальное множество)" nf3l
+  simpleBlock "ФЗ, не удовлетворяющие НФБК (минимальное множество)" nfbcl
   case normalized of
     Left norm -> do
       el "h1" $ text $ show "Некорректная нормализация!"
-      normWidget inp norm
-    Right norm -> normWidget inp norm
+      normWidget minf norm
+    Right norm -> normWidget minf norm
 
 normWidget :: MonadWidget t m =>
               Graph -> [[Vertex]] -> m ()
@@ -85,18 +92,17 @@ normWidget inp norm = do
           printProject =
             concatMap p
             where
-              p (n, g) = "(" ++ intercalate ", " (map vtxName n) ++ "):\n" ++
-                graphToString g ++ "\n\n"
-      text $ printProject prj
+              p n = "(" ++ intercalate ", " (map vtxName n) ++ ")\n"
+                -- ++ graphToString g ++ "\n\n"
+      text $ printProject norm
   customBlock "Диаграмма атрибутов" $ do
-    -- _ <- elDynHtml' "div" $ constDyn $ (JSS.unpack . vizDot . JSS.pack . printGraph . minimize . fullext) inp
-    graphImg . printGraph . minimize . fullext $ inp
+    graphImg . printGraph $ inp
     return ()
   customBlock "Диаграммы атрибутов нормализованных отношений" $
     el "div" $ do
       let printProject (n, g) = do
             el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
-            graphImg . printGraph . minimize . fullext $ g
+            graphImg . printGraph $ g
             -- _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack .
             return ()
           sp tg = el "div" $

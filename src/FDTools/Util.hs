@@ -25,7 +25,10 @@ import qualified Control.Arrow as A
 conservative :: (Graph -> Graph) -> Graph -> Graph
 conservative f g = res `S.union` add
   where res = f g
-        add = S.singleton $ let rl = allvs g S.\\ allvs res in (rl, S.empty)
+        rl = allvs g S.\\ allvs res
+        add
+          | S.null rl = S.empty
+          | otherwise = S.singleton (rl, S.empty)
 
 minimize :: Graph -> Graph
 minimize = collect . minimize' S.empty . nontrivial . expand
@@ -110,21 +113,20 @@ project :: VertexList -> Graph -> Graph
 project p = S.map (A.second (S.filter (`S.member` p))) . S.filter (\(f,_) -> f `S.isSubsetOf` p)
 
 nfbc :: Graph -> Graph
-nfbc g = S.filter (\(f,_) -> not $ f `S.member` sks) $ nontrivial $ fullext g
+nfbc g = S.filter (\(f,_) -> not $ f `S.member` sks) $ nontrivial g
   where
     sks = S.map fst $ superkeys g
 
 nf3 :: Graph -> Graph
-nf3 g = S.filter (\(f,r) -> not $ f `S.member` sks || r `S.isSubsetOf` kas) $ nontrivial $ fullext g
+nf3 g = collect . S.filter (\(_,r) -> not $ r `S.isSubsetOf` kas) . expand $ nfbc g
   where
-    sks = S.map fst $ superkeys g
     kas = unions $ S.map fst $ potkeys g
 
 normalize :: Graph -> Either [[Vertex]] [[Vertex]]
 normalize g = checkErr
   where
-    invFD = minimize $ nfbc g
-    restFD = S.difference (minimize $ fullext g) invFD
+    invFD = nfbc g
+    restFD = S.difference g invFD
     invAttrR = unions $ S.map snd invFD
     restAttrL = unions $ S.map fst restFD
     invRels :: [[Vertex]]
