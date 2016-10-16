@@ -8,7 +8,7 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 
 erToFDs :: ER -> Graph
-erToFDs ER{..} = nontrivial . S.fromList $
+erToFDs ER{..} = collect . nontrivial . S.fromList $
   entityFDs ++ relFDs
   where
     entityFDs = map (entityFD . snd) $ M.toList erEntities
