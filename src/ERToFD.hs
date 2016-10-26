@@ -16,6 +16,7 @@ erToFDs ER{..} = collect . nontrivial . S.fromList $
       = entKeys x --> attrs2vtx x (entAttrs x)
     entNameKeys = maybe S.empty entKeys . flip M.lookup erEntities
     entKeys x
+      | null aas = attrs2vtx p [Attr "id" True]
       | null kas = attrs2vtx p aas
       | otherwise = attrs2vtx p kas
       where kas = keyAttrs aas
