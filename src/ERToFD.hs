@@ -32,7 +32,7 @@ erToFDs ER{..} = collect . nontrivial . S.fromList $
       | otherwise
       = ctKeys Many --> rsOrNull : oneToOne
       where
-        oneToOne = concatMap (\x -> map ((entKeys x -->) . entKeys) (ctf One)) (ctf One)
+        oneToOne = map (\x -> entKeys x --> rs) (ctf One)
         rs = S.unions [ctKeys One, attrs2vtx' relName relAttrs]
         rsOrNull | S.null rs = S.singleton (Vertex "∅")
                  | otherwise = rs
