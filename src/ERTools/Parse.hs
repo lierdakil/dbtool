@@ -46,17 +46,35 @@ rel :: Parsec String st Rel
 rel = do
   _ <- char '='
   name <- ident
-  conns <- many $ try $ do
-    spaces
-    _ <- char ':'
-    spaces
-    ct <- (char '1' *> pure One) <|> (oneOf "M*" *> pure Many)
-    _ <- many1 space
-    ent <- ident
-    return (ct, ent)
+  conns <- newconnstx <|> oldconnstx <|> listconnstx
   eol
   attrs <- many attr
   return $ Rel name conns attrs
+  where
+    oneOrMany = (char '1' *> pure One) <|> (oneOf "MМ*" *> pure Many)
+    oldconnstx =
+      try $ many1 $ try $ do
+        spaces
+        _ <- char ':'
+        spaces
+        ct <- oneOrMany
+        _ <- many1 space
+        ent <- ident
+        return (ct, ent)
+    newconnstx =
+      try $ many1 $ try $ do
+        spaces
+        ct <- (string "->" *> pure One) <|> (string "--" *> pure Many)
+        spaces
+        ent <- ident
+        return (ct, ent)
+    listconnstx =
+      try $ do
+        ents <- char '(' *> spaces *> sepBy1 ident colonSep <* spaces <* char ')'
+        spaces
+        cts <- char '(' *> spaces *> sepBy1 oneOrMany colonSep <* spaces <* char ')'
+        return $ zip (cts ++ repeat Many) ents
+    colonSep = spaces *> char ':' <* spaces
 
 attr :: Parsec String st Attr
 attr = Attr <$> ident <*> option False (char '*' *> pure True) <* eol
