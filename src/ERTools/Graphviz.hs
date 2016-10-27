@@ -8,6 +8,7 @@ module ERTools.Graphviz
 import ERTools.Types
 import Data.Text.Lazy (pack, unpack)
 import Data.GraphViz
+import Data.List
 import Data.GraphViz.Types.Monadic
 import qualified Data.GraphViz.Attributes.HTML as H
 import Data.GraphViz.Attributes.Complete
@@ -31,8 +32,8 @@ entNode Entity{..} = do
   whenJust entParent $ \p -> do
     let pn = "parent::" ++ p
     node pn [shape Triangle, textLabel ""]
-    entName --> pn
-    p --> pn
+    pn --> entName
+    edge p pn [ArrowHead normal, edgeEnds Back]
 
 attrNode :: String -> Attr -> DotM String ()
 attrNode p Attr{..} = do
@@ -44,10 +45,11 @@ attrNode p Attr{..} = do
 
 relNode :: Rel -> DotM String ()
 relNode Rel{..} = do
-  node relName [shape DiamondShape]
-  mapM_ (\(typ, ent) -> edge relName ent [HeadLabel $ toLabelValue $ ct2s typ]) relConn
-  mapM_ (attrNode relName) relAttrs
+  node relName' [shape DiamondShape, textLabel (pack relName)]
+  mapM_ (\(typ, ent) -> edge relName' ent [HeadLabel $ toLabelValue $ ct2s typ]) relConn
+  mapM_ (attrNode relName') relAttrs
   where
     ct2s :: RelType -> String
     ct2s One = "1"
     ct2s Many = "M"
+    relName' = relName ++ '=' : intercalate ":" (map snd relConn)
