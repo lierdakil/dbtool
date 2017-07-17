@@ -62,38 +62,42 @@ customBlock header disp = do
 outputWidget :: (Show a, MonadWidget t m) =>
                 (Either a Graph, Bool) -> m ()
 outputWidget (Left err, _) = el "div" $ text $ show err
-outputWidget (Right inp, trueMinimize) = do
+outputWidget (Right inp', trueMinimize) = do
   let
-    (minimize', minhead)
-      | trueMinimize = (minimize, "Минимальный список ФЗ")
-      | otherwise = (collect . nontrivial, "Минимальный список ФЗ (неточный)")
-    full = fullext inp
+    -- (minimize', minhead)
+    --   | trueMinimize = (minimize, "Минимальный список ФЗ")
+    --   | otherwise = (collect . nontrivial, "Минимальный список ФЗ (неточный)")
+    -- full = fullext inp
     -- nt = nontrivial full
-    -- sk = superkeys full
-    pk = potkeys full
-    minf = conservative minimize' inp
-    nf3l = nf3 minf
-    nfbcl = nfbc minf
-    normalized = normalize minf
+    inp = collect . nontrivial $ inp'
+    sk = superkeys inp
+    pk = potkeys sk
+    -- minf = conservative minimize' inp
+    nf3l = nf3 nfbcl pk
+    nfbcl = nfbc inp sk
+    normalized = normalize inp nfbcl
   -- simpleBlock "Полный список ФЗ" full
   -- simpleBlock "Полный список ФЗ (кроме тривиальных)" nt
-  -- simpleBlock "Суперключи" sk
+  simpleBlock "Суперключи" sk
   simpleBlock "Потенциальные ключи" pk
-  simpleBlock minhead minf
-  simpleBlock "ФЗ, не удовлетворяющие 3НФ (минимальное множество)" nf3l
-  simpleBlock "ФЗ, не удовлетворяющие НФБК (минимальное множество)" nfbcl
+  -- simpleBlock minhead minf
+  simpleBlock "ФЗ, не удовлетворяющие 3НФ" nf3l
+  simpleBlock "ФЗ, не удовлетворяющие НФБК" nfbcl
+  customBlock "Диаграмма атрибутов" $ do
+    graphImg . printGraph $ inp
+    return ()
   case normalized of
     Left norm -> do
       el "h1" $ text "Некорректная нормализация!"
-      normWidget minf norm trueMinimize
-    Right norm -> normWidget minf norm trueMinimize
+      normWidget inp norm trueMinimize
+    Right norm -> normWidget inp norm trueMinimize
 
 normWidget :: MonadWidget t m =>
               Graph -> [[Vertex]] -> Bool -> m ()
 normWidget inp norm trueMinimize = do
-  let prj
-        | trueMinimize = map (\x -> (x, minimize . flip project (fullext inp) . S.fromList $ x)) norm
-        | otherwise = map (\x -> (x, collect . nontrivial . flip project inp . S.fromList $ x)) norm
+  -- let prj
+  --       | trueMinimize = map (\x -> (x, minimize . flip project (fullext inp) . S.fromList $ x)) norm
+  --       | otherwise = map (\x -> (x, collect . nontrivial . flip project inp . S.fromList $ x)) norm
   customBlock "Нормализованные отношения" $
     el "pre" $ do
       let
@@ -103,17 +107,14 @@ normWidget inp norm trueMinimize = do
               p n = "(" ++ intercalate ", " (map vtxName n) ++ ")\n"
                 -- ++ graphToString g ++ "\n\n"
       text $ printProject norm
-  customBlock "Диаграмма атрибутов" $ do
-    graphImg . printGraph $ inp
-    return ()
-  customBlock "Диаграммы атрибутов нормализованных отношений" $
-    el "div" $ do
-      let printProject (n, g) = do
-            el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
-            graphImg . printGraph $ g
-            -- _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack .
-            return ()
-          sp tg = el "div" $
-            mapM_ (el "div" . printProject) tg
-      sp prj
-      return ()
+  -- customBlock "Диаграммы атрибутов нормализованных отношений" $
+  --   el "div" $ do
+  --     let printProject (n, g) = do
+  --           el "p" $ text $ "(" ++ intercalate ", " (map vtxName n) ++ "):"
+  --           graphImg . printGraph $ g
+  --           -- _ <- elDynHtml' "div" $ constDyn . JSS.unpack . vizDot . JSS.pack .
+  --           return ()
+  --         sp tg = el "div" $
+  --           mapM_ (el "div" . printProject) tg
+  --     sp prj
+  --     return ()

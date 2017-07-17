@@ -97,14 +97,15 @@ closureToFDs :: Graph -> VertexList -> Edge
 closureToFDs g x = (x, closure x g)
 
 superkeys :: Graph -> Graph
-superkeys g = S.filter (\x -> snd x == allvs g) fe
+superkeys g = S.map (\x -> (x, avs)) $ S.filter (\x -> closure x g == avs) $ powerset als
   where
-    fe = fullext g
+    als = unions $ S.map fst g
+    avs = allvs g
 
 potkeys :: Graph -> Graph
-potkeys g = S.filter (\x -> all (not . (`S.isProperSubsetOf` fst x) . fst) $ S.toList sk) sk
-  where
-    sk = superkeys g
+potkeys sk = S.filter (\x -> all (not . (`S.isProperSubsetOf` fst x) . fst) $ S.toList sk) sk
+  -- where
+    -- sk = superkeys g
 
 nontrivial :: Graph -> Graph
 nontrivial = S.map (\(f,s) -> (f, S.filter (not . (`S.member` f)) s)) . S.filter (not . uncurry (flip S.isSubsetOf))
@@ -112,32 +113,32 @@ nontrivial = S.map (\(f,s) -> (f, S.filter (not . (`S.member` f)) s)) . S.filter
 project :: VertexList -> Graph -> Graph
 project p = S.map (A.second (S.filter (`S.member` p))) . S.filter (\(f,_) -> f `S.isSubsetOf` p)
 
-nfbc :: Graph -> Graph
-nfbc g = S.filter (\(f,_) -> not $ f `S.member` sks) $ nontrivial g
+nfbc :: Graph -> Graph -> Graph
+nfbc g sk = S.filter (\(f,_) -> not $ f `S.member` sks) $ g
   where
-    sks = S.map fst $ superkeys g
+    sks = S.map fst $ sk
 
-nf3 :: Graph -> Graph
-nf3 g = collect . S.filter (\(_,r) -> not $ r `S.isSubsetOf` kas) . expand $ nfbc g
+nf3 :: Graph -> Graph -> Graph
+nf3 nfbc' pk = collect . S.filter (\(_,r) -> not $ r `S.isSubsetOf` kas) . expand $ nfbc'
   where
-    kas = unions $ S.map fst $ potkeys g
+    kas = unions $ S.map fst $ pk
 
-normalize :: Graph -> Either [[Vertex]] [[Vertex]]
-normalize g = checkErr
+normalize :: Graph -> Graph -> Either [[Vertex]] [[Vertex]]
+normalize g invFD = checkErr
   where
-    invFD = nfbc g
-    restFD = S.difference g invFD
+    -- restFD = S.difference g invFD
     invAttrR = unions $ S.map snd invFD
-    restAttrL = unions $ S.map fst restFD
+    -- restAttrL = unions $ S.map fst restFD
     invRels :: [[Vertex]]
     invRels = S.toList $ S.map (S.toList . uncurry S.union) invFD
     nf1 = unions $ S.map (uncurry S.union) g
     baseRel :: [Vertex]
-    baseRel = S.toList $ S.filter (\x -> x `S.notMember` invAttrR || x `S.member` restAttrL) nf1
-    basePrj = conservative nontrivial $ project (S.fromList baseRel) $ fullext g
-    result | S.null basePrj = invRels
+    baseRel = S.toList $ nf1 S.\\ invAttrR
+    -- basePrj = conservative nontrivial $ project (S.fromList baseRel) $ fullext g
+    result | S.null $ g S.\\ invFD = invRels
            | otherwise =  baseRel : invRels
-    prjFDs = S.unions $ map (\x -> project (S.fromList x) $ fullext g) result
-    checkErr = if fullext prjFDs == fullext g
-               then Right result
-               else Left result
+    -- prjFDs = S.unions $ map (\x -> project (S.fromList x) $ fullext g) result
+    checkErr = Right result
+    -- checkErr = if fullext prjFDs == fullext g
+    --            then Right result
+    --            else Left result
